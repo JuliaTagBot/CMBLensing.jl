@@ -53,16 +53,16 @@ end
 @adjoint logdet(L::LinOp, θ) = logdet(L,θ), Δ->nothing
 @adjoint (ds::DataSet)(args...; kwargs...) = ds(args...; kwargs...), Δ -> nothing
 
-# some stuff which arguably belongs in Zygote or ChainRules
-# see also: https://github.com/FluxML/Zygote.jl/issues/316
-@adjoint *(D::Diagonal, v::AbstractVector) = D.diag .* v,
-    Δ -> (Diagonal(unbroadcast(D.diag, Δ .* conj.(v))), unbroadcast(v, Δ .* conj.(D.diag)))
-
-@adjoint broadcasted(::typeof(-), x ::Numeric, y::Numeric) =
-    broadcast(-, x, y), Δ -> (nothing, unbroadcast(x, Δ), unbroadcast(y, -Δ))
-
-@adjoint broadcasted(::typeof(\), x ::Numeric, y::Numeric) =
-    broadcast(\, x, y), Δ -> (nothing, unbroadcast(x, @. -Δ*y/x^2), unbroadcast(y, @. Δ/x))
+# # some stuff which arguably belongs in Zygote or ChainRules
+# # see also: https://github.com/FluxML/Zygote.jl/issues/316
+# @adjoint *(D::Diagonal, v::AbstractVector) = D.diag .* v,
+#     Δ -> (Diagonal(unbroadcast(D.diag, Δ .* conj.(v))), unbroadcast(v, Δ .* conj.(D.diag)))
+# 
+# @adjoint broadcasted(::typeof(-), x ::Numeric, y::Numeric) =
+#     broadcast(-, x, y), Δ -> (nothing, unbroadcast(x, Δ), unbroadcast(y, -Δ))
+# 
+# @adjoint broadcasted(::typeof(\), x ::Numeric, y::Numeric) =
+#     broadcast(\, x, y), Δ -> (nothing, unbroadcast(x, @. -Δ*y/x^2), unbroadcast(y, @. Δ/x))
 
 
 end
