@@ -96,7 +96,7 @@ Returns a tuple `(f, ϕ, tr)` where `f` is the best-fit (or quasi-sample) field,
 function MAP_joint(
     ds;
     ϕstart = nothing,
-    Nϕ = nothing,
+    Nϕ = :qe,
     quasi_sample = false, 
     nsteps = 10, 
     Ncg = 500,
@@ -115,12 +115,11 @@ function MAP_joint(
     
     # since MAP estimate is done at fixed θ, we don't need to reparametrize to
     # ϕₘ = G(θ)*ϕ, so set G to constant here to avoid wasted computation
-    @set! ds.G = IdentityOp
-    @unpack d, D, Cϕ, Cf, Cf̃, Cn, Cn̂, L = ds
+    # @set! ds.G = IdentityOp
+    @unpack d, Cϕ, Cf, Cf̃, Cn, Cn̂, L = ds
     
     f, f° = nothing, nothing
-    ϕ = (ϕstart==nothing) ? zero(Cϕ.diag) : ϕstart
-    Lϕ = cache(L(ϕ),d)
+    ϕ = (ϕstart==nothing) ? zero(diag(Cϕ)) : ϕstart
     T = real(eltype(d))
     α = 0
     tr = []
@@ -131,6 +130,7 @@ function MAP_joint(
     # from quadratic estimate
     if (Nϕ == :qe); Nϕ = quadratic_estimate(ds).Nϕ/2; end
     Hϕ⁻¹ = (Nϕ == nothing) ? Cϕ : pinv(pinv(Cϕ) + pinv(Nϕ))
+    Hϕ⁻¹ *= ds.G^2
     
     try
         @showprogress (progress==:summary ? 1 : Inf) "MAP_joint: " for i=1:nsteps
@@ -142,16 +142,13 @@ function MAP_joint(
             # `argmaxf_lnP`
             if isa(quasi_sample,Int); seed!(quasi_sample); end
                 
-            # recache Lϕ for new ϕ
-            if i!=1; cache!(Lϕ,ϕ); end
-            
             # run wiener filter
-            (f, hist) = argmaxf_lnP(((i==1 && ϕstart==nothing) ? NoLensing() : Lϕ), ds, 
+            (f, hist) = argmaxf_lnP(((i==1 && ϕstart==nothing) ? NoLensing() : ϕ), ds, 
                     which = (quasi_sample==false) ? :wf : :sample, # if doing a quasi-sample, we get a sample instead of the WF
                     guess = (i==1 ? nothing : f), # after first iteration, use the previous f as starting point
                     tol=cgtol, nsteps=Ncg, hist=(:i,:res), progress=(progress==:verbose))
                     
-            f° = Lϕ * D * f
+            f°, = mix(f,ϕ,ds)
             lnPcur = lnP(:mix,f°,ϕ,ds)
             
             # ==== show progress ====

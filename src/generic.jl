@@ -128,7 +128,7 @@ const FieldOpScal = Union{Field,LinOp,Scalar}
 If L depends on θ, evaluates `logdet(L(θ))` offset by its fiducial value at
 `L()`. Otherwise, returns 0.
 """
-logdet(L::LinOp, θ) = depends_on(L,θ) ? logdet(L()\L(θ)) : 0
+logdet(L::Union{LinOp,Scalar}, θ) = depends_on(L,θ) ? logdet(L()\L(θ)) : 0
 
 
 # 
