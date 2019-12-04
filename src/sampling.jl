@@ -228,7 +228,7 @@ function sample_joint(
                     # ==== gibbs P(ϕ°|f°,θ) ==== 
                     t_ϕ = @elapsed begin
                         
-                        Λm = (Nϕ == nothing) ? pinv(dsθ.Cϕ) : (pinv(dsθ.Cϕ) + pinv(Nϕ))
+                        Λm = ((Nϕ == nothing) ? pinv(dsθ.Cϕ) : (pinv(dsθ.Cϕ) + pinv(Nϕ))) * pinv(ds.G)^2
                         
                         for kwargs in symp_kwargs
                         
