@@ -1,6 +1,6 @@
 
 # Stores variables needed to construct the posterior
-@kwdef struct DataSet{Td,TCn,TCf,TCf̃,TCϕ,TCn̂,TM,TM̂,TB,TB̂,TD,TG,TP,TL}
+@kwdef struct DataSet{Td,TCn,TCf,TCf̃,TCϕ,TCn̂,TM,TM̂,TB,TB̂,TD,TH,TG,TP,TL}
     d  :: Td                # data
     Cϕ :: TCϕ               # ϕ covariance
     Cf :: TCf               # unlensed field covariance
@@ -11,7 +11,8 @@
     M̂  :: TM̂  = M           # approximate user mask, diagonal in same basis as Cf
     B  :: TB  = 1           # beam and instrumental transfer functions
     B̂  :: TB̂  = B           # approximate beam and instrumental transfer functions, diagonal in same basis as Cf
-    D  :: TD  = IdentityOp  # mixing matrix for mixed parametrization
+    D  :: TD  = IdentityOp  # pre-lensing mixing matrix for mixed parametrization
+    H  :: TH  = IdentityOp  # post-lensing mixing matrix for mixed parametrization
     G  :: TG  = IdentityOp  # reparametrization for ϕ
     P  :: TP  = 1           # pixelization operator (if estimating field on higher res than data)
     L  :: TL  = alloc_cache(LenseFlow(similar(diag(Cϕ))),d) # a CachedLenseFlow which will be reused for meomry

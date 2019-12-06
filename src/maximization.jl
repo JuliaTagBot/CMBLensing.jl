@@ -120,7 +120,6 @@ function MAP_joint(
     
     f, f° = nothing, nothing
     ϕ = (ϕstart==nothing) ? zero(Cϕ.diag) : ϕstart
-    Lϕ = cache(L(ϕ),d)
     T = real(eltype(d))
     α = 0
     tr = []
@@ -142,16 +141,13 @@ function MAP_joint(
             # `argmaxf_lnP`
             if isa(quasi_sample,Int); seed!(quasi_sample); end
                 
-            # recache Lϕ for new ϕ
-            if i!=1; cache!(Lϕ,ϕ); end
-            
             # run wiener filter
-            (f, hist) = argmaxf_lnP(((i==1 && ϕstart==nothing) ? NoLensing() : Lϕ), ds, 
+            (f, hist) = argmaxf_lnP(((i==1 && ϕstart==nothing) ? NoLensing() : ϕ), ds, 
                     which = (quasi_sample==false) ? :wf : :sample, # if doing a quasi-sample, we get a sample instead of the WF
                     guess = (i==1 ? nothing : f), # after first iteration, use the previous f as starting point
                     tol=cgtol, nsteps=Ncg, hist=(:i,:res), progress=(progress==:verbose))
-                    
-            f° = Lϕ * D * f
+
+            f°, = mix(f,ϕ,ds)
             lnPcur = lnP(:mix,f°,ϕ,ds)
             
             # ==== show progress ====
