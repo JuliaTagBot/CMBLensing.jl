@@ -132,6 +132,7 @@ for func in [:inv, :pinv]
     @eval $(func)(D::DiagOp{FT}) where {FT<:FieldTuple} = 
         Diagonal(FT(map(firstfield, map($(func), map(Diagonal,D.diag.fs)))))
 end
+logdet(D::Diagonal{<:Complex,<:FieldTuple}) = sum(logdet, getindex.(Ref(D),keys(diag(D).fs)))
 
 # promote before recursing for these 
 ≈(a::FieldTuple, b::FieldTuple) = all(map(≈, getfield.(promote(a,b),:fs)...))
